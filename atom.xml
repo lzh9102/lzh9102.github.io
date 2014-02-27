@@ -4,13 +4,84 @@
   <subtitle><![CDATA[資訊分享、生活記事]]></subtitle>
   <link href="http://lzh9102.github.io/atom.xml" rel="self"/>
   <link href="http://lzh9102.github.io"/>
-  <updated>2014-02-27T03:58:57.137Z</updated>
+  <updated>2014-02-27T05:43:40.039Z</updated>
   <id>http://lzh9102.github.io/</id>
   <author>
     <name><![CDATA[Che-Huai Lin]]></name>
     <email><![CDATA[lzh9102@gmail.com]]></email>
   </author>
   <generator uri="http://zespia.tw/hexo">Hexo</generator>
+  <entry>
+    <title type="html"><![CDATA[用 eCryptfs 建立加密的目錄]]></title>
+    <link href="http://lzh9102.github.io/2014/02/26/ecryptfs/"/>
+    <id>http://lzh9102.github.io/2014/02/26/ecryptfs/</id>
+    <published>2014-02-27T04:00:33.000Z</published>
+    <updated>2014-02-27T05:42:45.000Z</updated>
+    <content type="html"><![CDATA[<p><a href="http://ecryptfs.org/" target="_blank">eCryptfs</a> 是一個檔案系統加密的工具，它可以用來在家目錄中建立一個加密的目錄 <code>~/Private</code> 並在使用者登入時自動掛載，登出時自動卸載。這個目錄可以用來存放像 ssh key 或是 thunderbird 設定檔之類的個人資料，這樣連 <a href="https://en.wikipedia.org/wiki/Superuser" target="_blank">root</a> 都沒辦法取得你的資料了，也不需要每次電腦送修都要換 key/passphrase 了。</p>
+<a id="more"></a>
+
+<p>eCryptfs 有兩個部份，一個是<br><a href="https://en.wikipedia.org/wiki/Kernel_module" target="_blank">kernel module</a>，另一個是 <a href="https://en.wikipedia.org/wiki/User_space" target="_blank">userspace</a> 的管理工具。</p>
+<h2>1. 安裝 ecryptfs-utils</h2>
+<h3>1-1 設定 kernel module</h3>
+<p>Kernel module 通常已經內建於 Linux kernel 裡面，但是不一定會在開機時自動載入。以下以 openSUSE 12.3 為例，說明如何設定 eCryptfs 的 kernel module。首先先輸入 <code>lsmod | grep ecryptfs</code> 檢查有沒有載入 eCryptfs module，如果有出現類似以下的輸入就代表已經設定完成，請直接跳到 1-2 ，否則請繼續看下去:</p>
+<figure class="highlight"><pre><span class="title">ecryptfs</span>              <span class="number">103936</span>  <span class="number">1</span>
+<span class="title">encrypted_keys</span>         <span class="number">18729</span>  <span class="number">1</span> ecryptfs
+</pre></figure>
+
+<h3>1-2 設定自動認證掛載 eCryptfs</h3>
+<p>eCryptfs 利用 <a href="https://en.wikipedia.org/wiki/Pluggable_authentication_module" target="_blank">PAM</a><br>來自動在登入的時候掛載加密的目錄。在這裡同樣的，我將以 openSUSE 12.3 為例說明如何設定 PAM (其他的 distribution 設定方式可能不相同，在此不一一列出，請自行查詢)。</p>
+<p>首先先切換目錄到 <code>/etc/pam.d</code>: <code>cd /etc/pam.d</code></p>
+<p>我們要把這行 <code>auth    required    pam_ecryptfs.so    unwrap</code> 加到下面這行後面:</p>
+<p>輸入 <code>grep -n &quot;auth.*pam_unix\.so&quot; *</code> 來找到以下這行，用文字編輯器開啟後，在這行後面加上 <code>auth    required    pam_ecryptfs.so    unwrap</code>:</p>
+<figure class="highlight"><pre>auth     required        pam_unix.so  <span class="keyword">...</span>
+</pre></figure>
+
+<p>接下來，輸入 <code>grep -n &quot;password.*pam_unix\.so&quot; *</code> 找到以下這行，並在它的<strong>前面</strong>加上 <code>password    optional    pam_ecryptfs.so</code>:</p>
+<figure class="highlight"><pre>password     required        pam_unix.so  <span class="keyword">...</span>
+</pre></figure>
+
+<p>最後，輸入 <code>grep -n &quot;session.*pam_unix\.so&quot; *</code> 找到以下這行並在它的後面加上<br><code>session    optional    pam_ecryptfs.so</code></p>
+<figure class="highlight"><pre>session     required        pam_unix.so  <span class="keyword">...</span>
+</pre></figure>
+
+<p>如此就完成了 eCryptfs 的設定，重新開機後繼續下面的步驟。</p>
+<h3>1-3 安裝 userspace 工具</h3>
+<p>我們要使用 eCryptfs 只要安裝userspace 的工具，在套件管理程式裡面搜尋安裝 <code>ecryptfs-utils</code> 即可。如果你用的是 <a href="http://www.opensuse.org/en/" target="_blank">openSUSE</a>，可以輸入以下指令安裝:</p>
+<figure class="highlight lang-bash"><pre>sudo zypper install ecryptfs-utils
+</pre></figure>
+
+<h2>2. 建立 ~/Private 目錄</h2>
+<p>輸入以下指令建立你自己的 <code>~/Private</code> 目錄，注意前面<strong>不要</strong>加 <code>sudo</code>。</p>
+<figure class="highlight lang-bash"><pre>ecryptfs-setup-private
+</pre></figure>
+
+<p>重新登入後，應該就會看到一個<strong>空的</strong> <code>~/Private</code> 目錄，若是目錄裡面不是空的，而含有 <code>Access-Your-Private-Data.desktop</code> 和 <code>README.txt</code> 兩個檔案，代表<br><code>~/Private</code> 並沒有成功掛載。</p>
+<p>實際加密後的資料存在 <code>~/.Private</code> 裡面，保留了目錄結構和權限，檔名和檔案內容則是加密後的結果。</p>
+<h3>密碼管理</h3>
+<p>eCrypts 會詢問你的<em>登入密碼</em>(login passphrase)和一個<em>掛載密碼</em>(mount passphrase)。你或許會覺得奇怪，為什麼要用兩組密碼呢？這是因為登入密碼可能會經常改變，但是我們希望在修改密碼的時候不需要重新加密所有檔案。eCryptfs 會用掛載密碼來加密檔案，然後再用登入密碼來加密掛載密碼，並將加密後的掛載密碼存在<br><code>~/.ecryptfs/wrapped-passphrase</code> 這個檔案裡面。這樣當使用者修改登入密碼的時候，eCryptfs 就只要重新加密掛載密碼，而不用重新加密所有檔案。</p>
+<p>因此，當使用者修改登入密碼之後，必須手動執行<br><code>ecryptfs-rewrap-passphrase ~/.ecryptfs/wrapped-passphrase</code> 來重新加密掛載密碼。雖然看起來很奇怪，但<strong>這不是一個 bug</strong>，而是一個正確的設計。一個理由是 eCryptfs 需要知道原來的登入密碼才能解密加密後過的掛載密碼，另一個理由是若不是這樣的話，root 只要修改某個使用者的密碼就可以取得他的檔案，eCryptfs 就失去它的功能了。</p>
+<h3>手動掛載 ~/Private</h3>
+<p>若是修改了登入密碼但是沒有執行 <code>ecryptfs-rewrap-passphrase</code>，重新登入後會發現<code>~/Private</code> 裡面只有 <code>Access-Your-Private-Data.desktop</code> 和 <code>README.txt</code> 兩個檔案。這時候可以執行 <code>ecrypt-mount-private</code> 來掛載 ~/Private，它會詢問你的登入密碼，注意這時要輸入的是<strong>舊的</strong>登入密碼。</p>
+<h3>手動卸載 ~/Private</h3>
+<p>執行 <code>ecrypt-umount-private</code> 即可卸載 ~/Private。</p>
+<h2>將要加密的檔案移至 ~/Private</h2>
+<p>設定好登入自動掛載之後，就可以把需要加密的檔案移到 <code>~/Private</code> 並建立 symlink。舉例來說，以下這些就是我的 home 裡面需要加密的目錄。</p>
+<figure class="highlight"><pre>~<span class="regexp">/.ssh/</span>
+~<span class="regexp">/.gnupg/</span>
+~<span class="regexp">/.thunderbird/</span>
+~<span class="regexp">/.purple/</span>
+</pre></figure>
+
+<p>首先，先關閉這些程式(Thunderbird 和 Pidgin)，然後把這些目錄移到 <code>~/Private</code> 之後，再建立 symbolic link 讓程式以為目錄還在 home 裡面:</p>
+<figure class="highlight lang-bash"><pre>cd ~   <span class="comment"># 切換到 home</span>
+mv ~/.ssh ~/.gnupg/ ~/.thunderbird/ ~/.purple/ ~/Private <span class="comment"># 移動到 ~/Private</span>
+ln -s ~/Private/.* .  <span class="comment"># 建立 symlink</span>
+</pre></figure>
+
+<p>如此一來，只要登出之後，連 root 都沒辦法存取你的 private key、e-mail 和聊天紀錄了。</p>
+]]></content>
+    <category scheme="http://lzh9102.github.io/tags/GNU/Linux/" term="GNU/Linux"/>
+  </entry>
   <entry>
     <title type="html"><![CDATA[VirtualBox 做 Port Forwarding 時保留客戶端 ip 位址]]></title>
     <link href="http://lzh9102.github.io/2013/10/29/vbox-port-forwarding-client-ip/"/>
