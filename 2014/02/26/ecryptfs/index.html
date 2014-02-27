@@ -80,7 +80,8 @@
 <p>eCryptfs 有兩個部份，一個是<br><a href="https://en.wikipedia.org/wiki/Kernel_module" target="_blank">kernel module</a>，另一個是 <a href="https://en.wikipedia.org/wiki/User_space" target="_blank">userspace</a> 的管理工具。</p>
 <h2>1. 安裝 ecryptfs-utils</h2>
 <h3>1-1 設定 kernel module</h3>
-<p>Kernel module 通常已經內建於 Linux kernel 裡面，但是不一定會在開機時自動載入。以下以 openSUSE 12.3 為例，說明如何設定 eCryptfs 的 kernel module。首先先輸入 <code>lsmod | grep ecryptfs</code> 檢查有沒有載入 eCryptfs module，如果有出現類似以下的輸入就代表已經設定完成，請直接跳到 1-2 ，否則請繼續看下去:</p>
+<p>Kernel module 通常已經內建於 Linux kernel 裡面，但是不一定會在開機時自動載入。以下以 openSUSE 12.3 為例，說明如何設定 eCryptfs 的 kernel module。開啟 <code>/etc/modules-load.d/custom.conf</code>，並在裡面加入 <code>ecryptfs</code> 一行，重新開機後就會自動載入 eCryptfs kernel module 了。</p>
+<p>輸入 <code>lsmod | grep ecryptfs</code> 檢查有沒有載入 eCryptfs module，如果有出現類似以下的輸入就代表已經設定完成:</p>
 <figure class="highlight"><pre><span class="title">ecryptfs</span>              <span class="number">103936</span>  <span class="number">1</span>
 <span class="title">encrypted_keys</span>         <span class="number">18729</span>  <span class="number">1</span> ecryptfs
 </pre></figure>
