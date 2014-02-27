@@ -4,7 +4,7 @@
   <subtitle><![CDATA[資訊分享、生活記事]]></subtitle>
   <link href="http://lzh9102.github.io/atom.xml" rel="self"/>
   <link href="http://lzh9102.github.io"/>
-  <updated>2014-02-27T14:03:59.177Z</updated>
+  <updated>2014-02-27T14:08:48.530Z</updated>
   <id>http://lzh9102.github.io/</id>
   <author>
     <name><![CDATA[Che-Huai Lin]]></name>
@@ -16,7 +16,7 @@
     <link href="http://lzh9102.github.io/2014/02/26/ecryptfs/"/>
     <id>http://lzh9102.github.io/2014/02/26/ecryptfs/</id>
     <published>2014-02-27T04:00:33.000Z</published>
-    <updated>2014-02-27T14:03:41.000Z</updated>
+    <updated>2014-02-27T14:08:27.000Z</updated>
     <content type="html"><![CDATA[<p><a href="http://ecryptfs.org/" target="_blank">eCryptfs</a> 是一個檔案系統加密的工具，它可以用來在家目錄中建立一個加密的目錄 <code>~/Private</code> 並在使用者登入時自動掛載，登出時自動卸載。這個目錄可以用來存放像 ssh key 或是 thunderbird 設定檔之類的個人資料，這樣連 <a href="https://en.wikipedia.org/wiki/Superuser" target="_blank">root</a> 都沒辦法取得你的資料了，也不需要每次電腦送修都要換 key/passphrase 了。</p>
 <a id="more"></a>
 
@@ -80,6 +80,8 @@ ln -s ~/Private/.* .  <span class="comment"># 建立 symlink</span>
 </pre></figure>
 
 <p>如此一來，只要登出之後，連 root 都沒辦法存取你的 private key、e-mail 和聊天紀錄了。</p>
+<h2>參考資料</h2>
+<p><a href="https://wiki.archlinux.org/index.php/ECryptfs#Auto-mounting" target="_blank">https://wiki.archlinux.org/index.php/ECryptfs#Auto-mounting</a><br><a href="http://ecryptfs.org/" target="_blank">http://ecryptfs.org/</a></p>
 ]]></content>
     <category scheme="http://lzh9102.github.io/tags/GNU/Linux/" term="GNU/Linux"/>
   </entry>
