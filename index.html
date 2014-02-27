@@ -1,0 +1,317 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Timothy's Workspace</title>
+  <meta name="author" content="Che-Huai Lin">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+  <meta property="og:site_name" content="Timothy's Workspace"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Timothy's Workspace" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-44819137-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+</head>
+
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Timothy's Workspace</a></h1>
+  <h2><a href="/">資訊分享、生活記事</a></h2>
+<nav id="main-nav">
+    
+      <a href="/">Home</a>
+    
+      <a href="/profile">Profile</a>
+    
+      <a href="/projects">Projects</a>
+    
+      <a href="/archives">Archives</a>
+    
+    <!--<a href="/atom.xml">RSS</a>-->
+
+</nav>
+</div>
+</header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft"><div id="wrapper">
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2013-10-30T00:42:31.000Z"><a href="/2013/10/29/vbox-port-forwarding-client-ip/">Oct 29 2013</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2013/10/29/vbox-port-forwarding-client-ip/">VirtualBox 做 Port Forwarding 時保留客戶端 ip 位址</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>VirtualBox 的虛擬機器把網路連線設定為 NAT 的時候，從虛擬機外面無法連線到裡面，必須透過連接埠轉送 (Port Forwarding) 才能讓外部電腦可以連線到虛擬機內的<br>server。然而在預設情況下，VirtualBox 會將轉送後的封包的來源 ip 位址改成在虛擬機裡面看到的 host 的位置 (10.0.2.2)。如果想要針對外部 ip 做存取控制，例如讓 ftp 只能從特定幾個 ip 登入，需要知道連上來客戶端的 ip 位址，必須設定成讓<br>VirtualBox 轉送時不改變封包的來源位址 (proxy only)。注意設定前要先關閉<br>VirtualBox Manager，否則設定完的東西可能會被蓋掉。設定方法如下：</p>
+
+      
+    </div>
+    <footer>
+      
+        
+          <div class="alignleft">
+            <a href="/2013/10/29/vbox-port-forwarding-client-ip/#more" class="more-link">Read More...</a>
+          </div>
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2013-10-23T02:00:42.000Z"><a href="/2013/10/22/iptables-port-forwarding/">Oct 22 2013</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2013/10/22/iptables-port-forwarding/">使用 iptables 進行連接埠轉送 (port forwarding)</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>在 GNU/Linux 系統上面，只有具有 root 權限的程式才能直接使用 1024 以下的 port。有時候我們並不想讓 server 程式以 root 權限執行，但是又想要讓其他人可以從 1024 以下的 port 連到它，這時就可以利用內建的防火牆 — iptables<br>來達成這樣的功能。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+          <div class="alignleft">
+            <a href="/2013/10/22/iptables-port-forwarding/#more" class="more-link">Read More...</a>
+          </div>
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2013-10-13T01:55:28.000Z"><a href="/2013/10/12/hexo-install/">Oct 12 2013</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2013/10/12/hexo-install/">安裝 hexo 的一些細節</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p><a href="http://zespia.tw/hexo/" target="_blank">hexo</a> 是一個靜態網站產生器，用 markdown 寫完文章內容之後，它會自動幫你生成 html 頁面。因著這個特性，hexo 網頁可以架設在任何 http server 上，而不需要用到資料庫(如 mysql)、伺服器端程式碼(如 php)之類的東西。因為是用 markdown 寫文章，你可以用任何的文字編輯器來編輯 hexo blog，也可以用版本控制系統來紀錄 blog 的更動，比起 wordpress 或 blogger 這一類的 <a href="https://en.wikipedia.org/wiki/WYSIWYG" target="_blank">WYSIWYG</a><br>的編輯器來的有彈性許多。</p>
+<p>我的這個 blog 就是用 hexo 架設的，在安裝的時候，碰到了一些問題，在這裡做個筆記，希望讓之後碰到相同問題的人可以不用再花時間做重複的事。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+          <div class="alignleft">
+            <a href="/2013/10/12/hexo-install/#more" class="more-link">Read More...</a>
+          </div>
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2013-10-10T02:11:36.000Z"><a href="/2013/10/09/hello/">Oct 9 2013</a></time>
+      
+      
+  
+    <h1 class="title"><a href="/2013/10/09/hello/">測試</a></h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>測試貼文</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+
+<nav id="pagination">
+  
+  
+  <div class="clearfix"></div>
+</nav></div></div>
+    <aside id="sidebar" class="alignright"><div id="sidebar-line">
+
+  
+<div class="widget tagcloud">
+  <h3 class="title">Tags</h3>
+  <div class="entry">
+    <a href="/tags/GNU/Linux/" style="font-size: 10.00px;">GNU/Linux</a><a href="/tags/hexo/" style="font-size: 10.00px;">hexo</a><a href="/tags/network/" style="font-size: 20.00px;">network</a>
+  </div>
+</div>
+
+
+
+  
+<div class="widget tag">
+  <h3 class="title">Recent Posts</h3>
+  <ul class="entry">
+    
+      <li>
+        -&nbsp;<a href="/2013/10/29/vbox-port-forwarding-client-ip/">VirtualBox 做 Port Forwarding 時保留客戶端 ip 位址</a>
+      </li>
+    
+      <li>
+        -&nbsp;<a href="/2013/10/22/iptables-port-forwarding/">使用 iptables 進行連接埠轉送 (port forwarding)</a>
+      </li>
+    
+      <li>
+        -&nbsp;<a href="/2013/10/12/hexo-install/">安裝 hexo 的一些細節</a>
+      </li>
+    
+      <li>
+        -&nbsp;<a href="/2013/10/09/hello/">測試</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+
+  <div class="widget">
+  <h3 class="title">Comments</h3>
+  <script type="text/javascript" src="http://lzh9102-github.disqus.com/recent_comments_widget.js?num_items=5&hide_avatars=1&avatar_size=32&excerpt_length=50&hide_mods=0"></script>
+</div>
+
+
+  <div class="widget tag">
+<h3 class="title">Links</h3>
+<ul class="entry">
+
+  
+  <li>
+  <a target="_blank" href="http://kuanyui.github.io">東北角的小徑</a>
+  </li>
+
+  
+  <li>
+  <a target="_blank" href="http://qwinff.github.io">QWinFF</a>
+  </li>
+
+</ul>
+</div>
+
+
+  <a href="/atom.xml"><img src="/image/feed.png"/> RSS Feed</a><br/><br/>
+
+
+  <a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by-sa/3.0/88x31.png" /></a><br>
+若無另外註明，本站內容皆以
+<a target="_blank" href="http://creativecommons.org/licenses/by-sa/3.0/deed.en">CC 創用授權 BY-SA 3.0</a>
+釋出。
+
+
+</div></aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner">
+&copy; 2014 Che-Huai Lin
+
+</footer>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+<script type="text/javascript">
+var disqus_shortname = 'lzh9102-github';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+</body>
+</html>

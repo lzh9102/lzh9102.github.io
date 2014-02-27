@@ -1,0 +1,255 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>使用 iptables 進行連接埠轉送 (port forwarding) | Timothy's Workspace</title>
+  <meta name="author" content="Che-Huai Lin">
+  
+  <meta name="description" content="在 GNU/Linux 系統上面，只有具有 root 權限的程式才能直接使用 1024 以下的 port。有時候我們並不想讓 server 程式以 root 權限執行，但是又想要讓其他人可以從 1024 以下的 port 連到它，這時就可以利用內建的防火牆 — iptables來達成這樣的功能。">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="使用 iptables 進行連接埠轉送 (port forwarding)"/>
+  <meta property="og:site_name" content="Timothy's Workspace"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Timothy's Workspace" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-44819137-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+</head>
+
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Timothy's Workspace</a></h1>
+  <h2><a href="/">資訊分享、生活記事</a></h2>
+<nav id="main-nav">
+    
+      <a href="/">Home</a>
+    
+      <a href="/profile">Profile</a>
+    
+      <a href="/projects">Projects</a>
+    
+      <a href="/archives">Archives</a>
+    
+    <!--<a href="/atom.xml">RSS</a>-->
+
+</nav>
+</div>
+</header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft"><div id="wrapper"><article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2013-10-23T02:00:42.000Z"><a href="/2013/10/22/iptables-port-forwarding/">Oct 22 2013</a></time>
+      
+      
+  
+    <h1 class="title">使用 iptables 進行連接埠轉送 (port forwarding)</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>在 GNU/Linux 系統上面，只有具有 root 權限的程式才能直接使用 1024 以下的 port。有時候我們並不想讓 server 程式以 root 權限執行，但是又想要讓其他人可以從 1024 以下的 port 連到它，這時就可以利用內建的防火牆 — iptables<br>來達成這樣的功能。</p>
+<a id="more"></a>
+
+<p>舉個例子來說，現在我們想要讓一個一般使用者權限的 http server 可以從 port 80<br>連上，也就是要可以在瀏覽器裡面直接輸入 <code>localhost</code> 或是對外的 ip 位置，就能連到該 server。我們以 python http server 做測試，輸入以下指令，建立測試檔案及啟動 http server：</p>
+<figure class="highlight lang-bash"><pre>mkdir http_root
+cd http_root
+<span class="keyword">echo</span> <span class="string">"http server test"</span> &gt; index.html
+python -m SimpleHTTPServer 8000
+</pre></figure>
+
+<p>由於 http server 是以一般使用者權限執行，它只能使用 1024 以上的 port，在這裡我們使用 port 8000。現在開啟瀏覽器，輸入 <code>localhost:8000</code>，應該就可以看到 <code>http server test</code> 的訊息，表示<br>http server 已經成功啟動在 port 8000。此時若直接在瀏覽器中輸入 <code>localhost</code>，瀏覽器會連到 port 80 (預設的 http port)，但是這個時候 http server 並沒有 listen port 80，所以會顯示「找不到網頁」的訊息。</p>
+<p>接下來我們要利用 <code>iptables</code> 來將連接到 port 80 的連線轉送到 port 8000。<br><code>iptables</code> 有內建連接埠轉送 (port forwarding) 的功能，輸入以下指令便可將 port 80 導到 port 8000：</p>
+<figure class="highlight lang-bash"><pre>sudo iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 8000
+sudo iptables -t nat -A OUTPUT -p tcp -d localhost --dport 80 -j REDIRECT --to-ports 8000
+</pre></figure>
+
+<p>第一行的 <code>PREROUTING</code> 規則會在封包進到介面卡的時候執行，也就是在從其他電腦連線進來的時候才會將外部要連到 port 80 (<code>--dport</code>) 的連線轉送到 port 8000<br>(<code>--to-ports</code>)。但是如果從本機 (localhost) 連線的話，就不會用到 <code>PREROUTING</code>，所以要再加上一個 <code>OUTPUT</code> 的規則，把從本機連到自己 (<code>-d localhost</code>)<br>port 80 的連線轉送到 port 8000。上面的範例是轉送 TCP port，如果要轉送的是 UDP port 的話，只要將以上函數裡面的 <code>-p tcp</code> 改成 <code>-p udp</code> 即可。另外，<code>iptables</code> 必須用 root 權限執行，所以這裡加上了<br><code>sudo</code>。</p>
+<p>接下來要做的事是讓系統允許 port forwarding：</p>
+<figure class="highlight lang-bash"><pre>sudo sysctl -w net.ipv4.ip_forward=1
+</pre></figure>
+
+<p>做完這一步之後，應該在瀏覽器裡面輸入 <code>localhost</code> 就會看到 <code>http server test</code><br>的訊息了。</p>
+<p>這些 iptables 和 sysctl 做的設定只會在目前的使用階段有效，重新開機之後設定就會消失了。我們可以把這些步驟寫成一個 script，讓之後可以很快地開啟 port forwarding<br>：</p>
+<figure class="highlight lang-sh"><pre><span class="shebang">#!/bin/sh</span>
+
+<span class="comment"># 檢查 root 權限</span>
+<span class="keyword">if</span> <span class="test_condition">[ `id -u` -ne 0 ]</span>; <span class="keyword">then</span>
+   <span class="keyword">echo</span> <span class="string">"這個 script 需要 root 權限!"</span>
+   <span class="keyword">exit</span> 1
+<span class="keyword">fi</span>
+
+<span class="comment"># 把 port forwarding 定義成函數</span>
+remap_tcp_port() {
+   iptables -t nat -A PREROUTING -p tcp --dport <span class="variable">$2</span> -j REDIRECT --to-ports <span class="variable">$1</span>
+   iptables -t nat -A OUTPUT -p tcp -d localhost --dport <span class="variable">$2</span> -j REDIRECT --to-ports <span class="variable">$1</span>
+}
+
+<span class="comment"># 允許 port forwarding</span>
+sysctl -w net.ipv4.ip_forward=1
+
+<span class="comment"># 設定要轉送的 port (呼叫上面定義的函數)</span>
+remap_tcp_port 8000 80
+</pre></figure>
+
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/network/">network</a>, <a href="/tags/GNU/Linux/">GNU/Linux</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+  <h1 class="title">Comments</h1>
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div></div>
+    <aside id="sidebar" class="alignright"><div id="sidebar-line">
+
+  
+<div class="widget tagcloud">
+  <h3 class="title">Tags</h3>
+  <div class="entry">
+    <a href="/tags/GNU/Linux/" style="font-size: 10.00px;">GNU/Linux</a><a href="/tags/hexo/" style="font-size: 10.00px;">hexo</a><a href="/tags/network/" style="font-size: 20.00px;">network</a>
+  </div>
+</div>
+
+
+
+  
+<div class="widget tag">
+  <h3 class="title">Recent Posts</h3>
+  <ul class="entry">
+    
+      <li>
+        -&nbsp;<a href="/2013/10/29/vbox-port-forwarding-client-ip/">VirtualBox 做 Port Forwarding 時保留客戶端 ip 位址</a>
+      </li>
+    
+      <li>
+        -&nbsp;<a href="/2013/10/22/iptables-port-forwarding/">使用 iptables 進行連接埠轉送 (port forwarding)</a>
+      </li>
+    
+      <li>
+        -&nbsp;<a href="/2013/10/12/hexo-install/">安裝 hexo 的一些細節</a>
+      </li>
+    
+      <li>
+        -&nbsp;<a href="/2013/10/09/hello/">測試</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+
+  <div class="widget">
+  <h3 class="title">Comments</h3>
+  <script type="text/javascript" src="http://lzh9102-github.disqus.com/recent_comments_widget.js?num_items=5&hide_avatars=1&avatar_size=32&excerpt_length=50&hide_mods=0"></script>
+</div>
+
+
+  <div class="widget tag">
+<h3 class="title">Links</h3>
+<ul class="entry">
+
+  
+  <li>
+  <a target="_blank" href="http://kuanyui.github.io">東北角的小徑</a>
+  </li>
+
+  
+  <li>
+  <a target="_blank" href="http://qwinff.github.io">QWinFF</a>
+  </li>
+
+</ul>
+</div>
+
+
+  <a href="/atom.xml"><img src="/image/feed.png"/> RSS Feed</a><br/><br/>
+
+
+  <a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by-sa/3.0/88x31.png" /></a><br>
+若無另外註明，本站內容皆以
+<a target="_blank" href="http://creativecommons.org/licenses/by-sa/3.0/deed.en">CC 創用授權 BY-SA 3.0</a>
+釋出。
+
+
+</div></aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner">
+&copy; 2014 Che-Huai Lin
+
+</footer>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+<script type="text/javascript">
+var disqus_shortname = 'lzh9102-github';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+</body>
+</html>

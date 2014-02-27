@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title><![CDATA[Timothy's Workspace]]></title>
+  <subtitle><![CDATA[資訊分享、生活記事]]></subtitle>
+  <link href="http://lzh9102.github.io/atom.xml" rel="self"/>
+  <link href="http://lzh9102.github.io"/>
+  <updated>2014-02-27T03:58:57.137Z</updated>
+  <id>http://lzh9102.github.io/</id>
+  <author>
+    <name><![CDATA[Che-Huai Lin]]></name>
+    <email><![CDATA[lzh9102@gmail.com]]></email>
+  </author>
+  <generator uri="http://zespia.tw/hexo">Hexo</generator>
+  <entry>
+    <title type="html"><![CDATA[VirtualBox 做 Port Forwarding 時保留客戶端 ip 位址]]></title>
+    <link href="http://lzh9102.github.io/2013/10/29/vbox-port-forwarding-client-ip/"/>
+    <id>http://lzh9102.github.io/2013/10/29/vbox-port-forwarding-client-ip/</id>
+    <published>2013-10-30T00:42:31.000Z</published>
+    <updated>2013-12-03T16:36:55.000Z</updated>
+    <content type="html"><![CDATA[<p>VirtualBox 的虛擬機器把網路連線設定為 NAT 的時候，從虛擬機外面無法連線到裡面，必須透過連接埠轉送 (Port Forwarding) 才能讓外部電腦可以連線到虛擬機內的<br>server。然而在預設情況下，VirtualBox 會將轉送後的封包的來源 ip 位址改成在虛擬機裡面看到的 host 的位置 (10.0.2.2)。如果想要針對外部 ip 做存取控制，例如讓 ftp 只能從特定幾個 ip 登入，需要知道連上來客戶端的 ip 位址，必須設定成讓<br>VirtualBox 轉送時不改變封包的來源位址 (proxy only)。注意設定前要先關閉<br>VirtualBox Manager，否則設定完的東西可能會被蓋掉。設定方法如下：</p>
+<a id="more"></a>
+
+<h2>方法一：使用 VBoxManage 設定</h2>
+<p>VBoxManage 是 VirtualBox 的指令界面設定程式，假設該虛擬機只有開啟第 1 張虛擬網卡並設定為 NAT，則設定成 proxy only 的方式如下：</p>
+<figure class="highlight lang-bash"><pre>VBoxManage modifyvm <span class="string">"&lt;虛擬機名稱&gt;"</span> --nataliasmode1 proxyonly
+</pre></figure>
+
+<p>如果要設定的是第二張網卡，請將 <code>--nataliasmode1</code> 改成 <code>--nataliasmode2</code> 即可，其餘依此類推。</p>
+<h2>方法二：直接修改 *.vbox 設定檔</h2>
+<p>VBoxManage 其實只是修改目標虛擬機的設定檔 (*.vbox)，我們也可以手動修改設定檔來達到一樣的效果。首先開啟虛擬機的目錄[^1]，然後用文字編輯器開啟<em>虛擬機名稱</em>.vbox 檔案。先找到要設定的的網卡，例如：</p>
+<figure class="highlight"><pre><span class="tag">&lt;<span class="title">Adapter</span> <span class="attribute">slot</span>=<span class="value">"0"</span> <span class="attribute">enabled</span>=<span class="value">"true"</span> <span class="attribute">MACAddress</span>=<span class="value">"080027B7366D"</span> <span class="attribute">cable</span>=<span class="value">"true"</span> <span class="attribute">speed</span>=<span class="value">"0"</span> <span class="attribute">type</span>=<span class="value">"82540EM"</span>&gt;</span>
+</pre></figure>
+
+<p>然後再找到它裡面的 Alias 設定，例如：</p>
+<figure class="highlight"><pre><span class="tag">&lt;<span class="title">Alias</span> <span class="attribute">logging</span>=<span class="value">"false"</span> <span class="attribute">proxy-only</span>=<span class="value">"false"</span> <span class="attribute">use-same-ports</span>=<span class="value">"false"</span>/&gt;</span>
+</pre></figure>
+
+<p>把 <code>proxy-only=&quot;false&quot;</code> 改成 <code>proxy-only=&quot;true&quot;</code>。</p>
+<p>按照以上方法設定完之後，再啟動虛擬機器之後， port forwarding 都會保留來源 ip<br>位址，就可以在 ftp server 或是 http server 針對不同 client 位址做限制了。</p>
+<p>[^1]: 如果不知道虛擬機目錄在哪裡的話，可以開啟 VirtualBox 管理員，然後在虛擬機上按右鍵 -&gt; <em>顯示在檔案管理員</em>，就會用預設的檔案管理程式開啟虛擬機目錄。</p>
+]]></content>
+    <category scheme="http://lzh9102.github.io/tags/network/" term="network"/>
+  </entry>
+  <entry>
+    <title type="html"><![CDATA[使用 iptables 進行連接埠轉送 (port forwarding)]]></title>
+    <link href="http://lzh9102.github.io/2013/10/22/iptables-port-forwarding/"/>
+    <id>http://lzh9102.github.io/2013/10/22/iptables-port-forwarding/</id>
+    <published>2013-10-23T02:00:42.000Z</published>
+    <updated>2013-12-03T16:36:55.000Z</updated>
+    <content type="html"><![CDATA[<p>在 GNU/Linux 系統上面，只有具有 root 權限的程式才能直接使用 1024 以下的 port。有時候我們並不想讓 server 程式以 root 權限執行，但是又想要讓其他人可以從 1024 以下的 port 連到它，這時就可以利用內建的防火牆 — iptables<br>來達成這樣的功能。</p>
+<a id="more"></a>
+
+<p>舉個例子來說，現在我們想要讓一個一般使用者權限的 http server 可以從 port 80<br>連上，也就是要可以在瀏覽器裡面直接輸入 <code>localhost</code> 或是對外的 ip 位置，就能連到該 server。我們以 python http server 做測試，輸入以下指令，建立測試檔案及啟動 http server：</p>
+<figure class="highlight lang-bash"><pre>mkdir http_root
+cd http_root
+<span class="keyword">echo</span> <span class="string">"http server test"</span> &gt; index.html
+python -m SimpleHTTPServer 8000
+</pre></figure>
+
+<p>由於 http server 是以一般使用者權限執行，它只能使用 1024 以上的 port，在這裡我們使用 port 8000。現在開啟瀏覽器，輸入 <code>localhost:8000</code>，應該就可以看到 <code>http server test</code> 的訊息，表示<br>http server 已經成功啟動在 port 8000。此時若直接在瀏覽器中輸入 <code>localhost</code>，瀏覽器會連到 port 80 (預設的 http port)，但是這個時候 http server 並沒有 listen port 80，所以會顯示「找不到網頁」的訊息。</p>
+<p>接下來我們要利用 <code>iptables</code> 來將連接到 port 80 的連線轉送到 port 8000。<br><code>iptables</code> 有內建連接埠轉送 (port forwarding) 的功能，輸入以下指令便可將 port 80 導到 port 8000：</p>
+<figure class="highlight lang-bash"><pre>sudo iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 8000
+sudo iptables -t nat -A OUTPUT -p tcp -d localhost --dport 80 -j REDIRECT --to-ports 8000
+</pre></figure>
+
+<p>第一行的 <code>PREROUTING</code> 規則會在封包進到介面卡的時候執行，也就是在從其他電腦連線進來的時候才會將外部要連到 port 80 (<code>--dport</code>) 的連線轉送到 port 8000<br>(<code>--to-ports</code>)。但是如果從本機 (localhost) 連線的話，就不會用到 <code>PREROUTING</code>，所以要再加上一個 <code>OUTPUT</code> 的規則，把從本機連到自己 (<code>-d localhost</code>)<br>port 80 的連線轉送到 port 8000。上面的範例是轉送 TCP port，如果要轉送的是 UDP port 的話，只要將以上函數裡面的 <code>-p tcp</code> 改成 <code>-p udp</code> 即可。另外，<code>iptables</code> 必須用 root 權限執行，所以這裡加上了<br><code>sudo</code>。</p>
+<p>接下來要做的事是讓系統允許 port forwarding：</p>
+<figure class="highlight lang-bash"><pre>sudo sysctl -w net.ipv4.ip_forward=1
+</pre></figure>
+
+<p>做完這一步之後，應該在瀏覽器裡面輸入 <code>localhost</code> 就會看到 <code>http server test</code><br>的訊息了。</p>
+<p>這些 iptables 和 sysctl 做的設定只會在目前的使用階段有效，重新開機之後設定就會消失了。我們可以把這些步驟寫成一個 script，讓之後可以很快地開啟 port forwarding<br>：</p>
+<figure class="highlight lang-sh"><pre><span class="shebang">#!/bin/sh</span>
+
+<span class="comment"># 檢查 root 權限</span>
+<span class="keyword">if</span> <span class="test_condition">[ `id -u` -ne 0 ]</span>; <span class="keyword">then</span>
+   <span class="keyword">echo</span> <span class="string">"這個 script 需要 root 權限!"</span>
+   <span class="keyword">exit</span> 1
+<span class="keyword">fi</span>
+
+<span class="comment"># 把 port forwarding 定義成函數</span>
+remap_tcp_port() {
+   iptables -t nat -A PREROUTING -p tcp --dport <span class="variable">$2</span> -j REDIRECT --to-ports <span class="variable">$1</span>
+   iptables -t nat -A OUTPUT -p tcp -d localhost --dport <span class="variable">$2</span> -j REDIRECT --to-ports <span class="variable">$1</span>
+}
+
+<span class="comment"># 允許 port forwarding</span>
+sysctl -w net.ipv4.ip_forward=1
+
+<span class="comment"># 設定要轉送的 port (呼叫上面定義的函數)</span>
+remap_tcp_port 8000 80
+</pre></figure>
+
+]]></content>
+    <category scheme="http://lzh9102.github.io/tags/network/" term="network"/>
+    <category scheme="http://lzh9102.github.io/tags/GNU/Linux/" term="GNU/Linux"/>
+  </entry>
+  <entry>
+    <title type="html"><![CDATA[安裝 hexo 的一些細節]]></title>
+    <link href="http://lzh9102.github.io/2013/10/12/hexo-install/"/>
+    <id>http://lzh9102.github.io/2013/10/12/hexo-install/</id>
+    <published>2013-10-13T01:55:28.000Z</published>
+    <updated>2013-12-03T16:36:55.000Z</updated>
+    <content type="html"><![CDATA[<p><a href="http://zespia.tw/hexo/" target="_blank">hexo</a> 是一個靜態網站產生器，用 markdown 寫完文章內容之後，它會自動幫你生成 html 頁面。因著這個特性，hexo 網頁可以架設在任何 http server 上，而不需要用到資料庫(如 mysql)、伺服器端程式碼(如 php)之類的東西。因為是用 markdown 寫文章，你可以用任何的文字編輯器來編輯 hexo blog，也可以用版本控制系統來紀錄 blog 的更動，比起 wordpress 或 blogger 這一類的 <a href="https://en.wikipedia.org/wiki/WYSIWYG" target="_blank">WYSIWYG</a><br>的編輯器來的有彈性許多。</p>
+<p>我的這個 blog 就是用 hexo 架設的，在安裝的時候，碰到了一些問題，在這裡做個筆記，希望讓之後碰到相同問題的人可以不用再花時間做重複的事。</p>
+<a id="more"></a>
+
+<h2>1. 安裝 hexo-renderer-discount 失敗</h2>
+<p><code>discount</code> 是一個用 C 語言實作的 markdown compiler，功能比內建的 <code>marked</code> 還要強。因此，我想要安裝 <code>discount</code> 作為預設的 markdown renderer。然而在安裝 <code>hexo-renderer-discount</code> 的時候，出現以下錯誤訊息:</p>
+<figure class="highlight"><pre><span class="attribute">g++</span>: <span class="string">error: unrecognized command line option ‘-mimpure-text’</span>
+</pre></figure>
+
+<p>其實這跟 <code>hexo-renderer-discount</code> 這個套件本身無關，問題出在 <code>discount</code> 套件。在寫這篇文章的時候(2013/10/12)，<code>discount</code> 的 build script 裡面的 linker flag<br>包含了 <code>-mimpure-text</code> 這個選項。我用 Google 查了一下，發現這個 flag 是針對<br>SPARC 處理器，而在我系統上的 gcc 則沒有這個選項，所以才會發生錯誤。我對這個錯誤的解決方法是，修改 <code>discount</code> 的 linker flag，手動安裝 discount，然後再安裝 <code>hexo-renderer-discount</code>。</p>
+<p>在開始手動安裝之前，先確定你的系統上有 <code>node-waf</code> 這個程式，在 openSUSE 12.3<br>裡面，這表示必須安裝 <code>nodejs-devel</code> 套件。</p>
+<p>第一個步驟是先將 discount 的原始碼下載到 <code>node_modules</code> 目錄，最方便的方法是用 npm 下載，<b><u>但是不要讓它安裝</u></b>，一出現 <code>Checking for program ...</code> 訊息之後就立刻按 <code>Ctrl-C</code> 停止 npm：</p>
+<figure class="highlight lang-bash"><pre><span class="comment"># 先切換到 hexo blog 的根目錄</span>
+npm install discount <span class="comment"># 一出現 "Checking for program g++ or c++" 就立刻按 Ctrl-C</span>
+cd npm_modules/discount <span class="comment"># 切換到下載的 discount 目錄</span>
+</pre></figure>
+
+<p>開啟 <code>wscript</code>，找到這一行</p>
+<figure class="highlight lang-js"><pre>obj.linkflags = [<span class="string">"-lmarkdown"</span>, <span class="string">"-mimpure-text"</span>, <span class="string">"-L."</span>]
+</pre></figure>
+
+<p>去掉 <code>-mimpure-text</code>，改成這樣：</p>
+<figure class="highlight lang-js"><pre>obj.linkflags = [<span class="string">"-lmarkdown"</span>, <span class="string">"-L."</span>]
+</pre></figure>
+
+<p>接下來，編譯 <code>discount</code>：</p>
+<figure class="highlight lang-bash"><pre>node-waf configure build
+</pre></figure>
+
+<p>如果沒有錯誤訊息的話，就表示 <code>discount</code> 已經成功安裝了。接下來切換回 hexo 的根目錄，然後安裝 <code>hexo-renderer-discount</code>：</p>
+<figure class="highlight lang-bash"><pre>cd ../..
+npm install hexo-renderer-discount
+</pre></figure>
+
+<p>如此一來就可以在 hexo 裡面使用 discount markdown 來寫文章了。</p>
+<h2>2. 中文分行書寫問題</h2>
+<p>中文的語詞之間並沒有空格，markdown 的設計者顯然沒有考慮到這一點，因為 markdown<br>的語法並沒有內建分行書寫的功能，如果把中文分為兩行：</p>
+<figure class="highlight"><pre>中文分行
+書寫
+</pre></figure>
+
+<p>這樣會被 markdown 轉換為 <code>中文分行 書寫</code>，中間被加入了空白。若是硬要用 markdown<br>達成分行書寫又不要在中間加空白的話，只能寫成這樣：</p>
+<figure class="highlight"><pre>中文分行<span class="comment">&lt;!--
+--&gt;</span>書寫
+</pre></figure>
+
+<p>利用 html 註解來把分行符號吃掉，但是行數一多就變得很麻煩了。</p>
+<p>為了解決這個問題，我加入了一個自訂的 renderer script ，將所有 <code>*.md</code> 裡面以 <code>\</code><br>結尾的行與它的下一行合併，這樣就可以寫成這樣：</p>
+<figure class="highlight"><pre>中文分行<span class="command">\
+</span>書寫
+</pre></figure>
+
+<p>而輸出結果為 <code>中文分行書寫</code>。要達到這個效果，把以下的 script 複製到 hexo<br>根目錄下的 <code>scripts/</code> 目錄裡面：</p>
+<figure class="highlight lang-js"><pre><span class="comment">// markdown-preproc.js</span>
+<span class="comment">// import synchronous renderers</span>
+markdown = hexo.extend.renderer.list(<span class="literal">true</span>)[<span class="string">"md"</span>];
+
+<span class="comment">// override renderer function for *.md</span>
+hexo.extend.renderer.register(<span class="string">'md'</span>, <span class="string">'html'</span>, <span class="keyword">function</span>(data, options) {
+   <span class="keyword">var</span> result = data.text.replace(<span class="regexp">/\\\n/g</span>, <span class="string">''</span>); <span class="comment">// join lines separated with '\&lt;newline&gt;'</span>
+   result = markdown({text: result}, options); <span class="comment">// render with default markdown renderer</span>
+   <span class="keyword">return</span> result;
+}, <span class="literal">true</span>);
+</pre></figure>
+
+<p>我會選擇使用 <code>\</code> 是因為我常用 <a href="http://docutils.sourceforge.net/rst.html" target="_blank">reStructuredText</a><br>，所以習慣這樣寫。如果你比較常用 <code>latex</code> 寫文章，你或許會想要使用 <code>%</code> 符號來連接中文行，若是這樣的話，請將以上的 script 中的 <code>/\\\n/g</code> 改成 <code>/%\n/g</code> 即可。</p>
+]]></content>
+    <category scheme="http://lzh9102.github.io/tags/hexo/" term="hexo"/>
+  </entry>
+  <entry>
+    <title type="html"><![CDATA[測試]]></title>
+    <link href="http://lzh9102.github.io/2013/10/09/hello/"/>
+    <id>http://lzh9102.github.io/2013/10/09/hello/</id>
+    <published>2013-10-10T02:11:36.000Z</published>
+    <updated>2013-12-03T16:36:55.000Z</updated>
+    <content type="html"><![CDATA[<p>測試貼文</p>
+]]></content>
+  </entry>
+</feed>

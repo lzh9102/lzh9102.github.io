@@ -1,0 +1,278 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>安裝 hexo 的一些細節 | Timothy's Workspace</title>
+  <meta name="author" content="Che-Huai Lin">
+  
+  <meta name="description" content="hexo 是一個靜態網站產生器，用 markdown 寫完文章內容之後，它會自動幫你生成 html 頁面。因著這個特性，hexo 網頁可以架設在任何 http server 上，而不需要用到資料庫(如 mysql)、伺服器端程式碼(如 php)之類的東西。因為是用 markdown 寫文章，你可以用任何的文字編輯器來編輯 hexo blog，也可以用版本控制系統來紀錄 blog 的更動，比起 wordpress 或 blogger 這一類的 WYSIWYG的編輯器來的有彈性許多。
+我的這個 blog 就是用 hexo 架設的，在安裝的時候，碰到了一些問題，在這裡做個筆記，希望讓之後碰到相同問題的人可以不用再花時間做重複的事。">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="安裝 hexo 的一些細節"/>
+  <meta property="og:site_name" content="Timothy's Workspace"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Timothy's Workspace" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-44819137-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+</head>
+
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Timothy's Workspace</a></h1>
+  <h2><a href="/">資訊分享、生活記事</a></h2>
+<nav id="main-nav">
+    
+      <a href="/">Home</a>
+    
+      <a href="/profile">Profile</a>
+    
+      <a href="/projects">Projects</a>
+    
+      <a href="/archives">Archives</a>
+    
+    <!--<a href="/atom.xml">RSS</a>-->
+
+</nav>
+</div>
+</header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft"><div id="wrapper"><article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2013-10-13T01:55:28.000Z"><a href="/2013/10/12/hexo-install/">Oct 12 2013</a></time>
+      
+      
+  
+    <h1 class="title">安裝 hexo 的一些細節</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p><a href="http://zespia.tw/hexo/" target="_blank">hexo</a> 是一個靜態網站產生器，用 markdown 寫完文章內容之後，它會自動幫你生成 html 頁面。因著這個特性，hexo 網頁可以架設在任何 http server 上，而不需要用到資料庫(如 mysql)、伺服器端程式碼(如 php)之類的東西。因為是用 markdown 寫文章，你可以用任何的文字編輯器來編輯 hexo blog，也可以用版本控制系統來紀錄 blog 的更動，比起 wordpress 或 blogger 這一類的 <a href="https://en.wikipedia.org/wiki/WYSIWYG" target="_blank">WYSIWYG</a><br>的編輯器來的有彈性許多。</p>
+<p>我的這個 blog 就是用 hexo 架設的，在安裝的時候，碰到了一些問題，在這裡做個筆記，希望讓之後碰到相同問題的人可以不用再花時間做重複的事。</p>
+<a id="more"></a>
+
+<h2>1. 安裝 hexo-renderer-discount 失敗</h2>
+<p><code>discount</code> 是一個用 C 語言實作的 markdown compiler，功能比內建的 <code>marked</code> 還要強。因此，我想要安裝 <code>discount</code> 作為預設的 markdown renderer。然而在安裝 <code>hexo-renderer-discount</code> 的時候，出現以下錯誤訊息:</p>
+<figure class="highlight"><pre><span class="attribute">g++</span>: <span class="string">error: unrecognized command line option ‘-mimpure-text’</span>
+</pre></figure>
+
+<p>其實這跟 <code>hexo-renderer-discount</code> 這個套件本身無關，問題出在 <code>discount</code> 套件。在寫這篇文章的時候(2013/10/12)，<code>discount</code> 的 build script 裡面的 linker flag<br>包含了 <code>-mimpure-text</code> 這個選項。我用 Google 查了一下，發現這個 flag 是針對<br>SPARC 處理器，而在我系統上的 gcc 則沒有這個選項，所以才會發生錯誤。我對這個錯誤的解決方法是，修改 <code>discount</code> 的 linker flag，手動安裝 discount，然後再安裝 <code>hexo-renderer-discount</code>。</p>
+<p>在開始手動安裝之前，先確定你的系統上有 <code>node-waf</code> 這個程式，在 openSUSE 12.3<br>裡面，這表示必須安裝 <code>nodejs-devel</code> 套件。</p>
+<p>第一個步驟是先將 discount 的原始碼下載到 <code>node_modules</code> 目錄，最方便的方法是用 npm 下載，<b><u>但是不要讓它安裝</u></b>，一出現 <code>Checking for program ...</code> 訊息之後就立刻按 <code>Ctrl-C</code> 停止 npm：</p>
+<figure class="highlight lang-bash"><pre><span class="comment"># 先切換到 hexo blog 的根目錄</span>
+npm install discount <span class="comment"># 一出現 "Checking for program g++ or c++" 就立刻按 Ctrl-C</span>
+cd npm_modules/discount <span class="comment"># 切換到下載的 discount 目錄</span>
+</pre></figure>
+
+<p>開啟 <code>wscript</code>，找到這一行</p>
+<figure class="highlight lang-js"><pre>obj.linkflags = [<span class="string">"-lmarkdown"</span>, <span class="string">"-mimpure-text"</span>, <span class="string">"-L."</span>]
+</pre></figure>
+
+<p>去掉 <code>-mimpure-text</code>，改成這樣：</p>
+<figure class="highlight lang-js"><pre>obj.linkflags = [<span class="string">"-lmarkdown"</span>, <span class="string">"-L."</span>]
+</pre></figure>
+
+<p>接下來，編譯 <code>discount</code>：</p>
+<figure class="highlight lang-bash"><pre>node-waf configure build
+</pre></figure>
+
+<p>如果沒有錯誤訊息的話，就表示 <code>discount</code> 已經成功安裝了。接下來切換回 hexo 的根目錄，然後安裝 <code>hexo-renderer-discount</code>：</p>
+<figure class="highlight lang-bash"><pre>cd ../..
+npm install hexo-renderer-discount
+</pre></figure>
+
+<p>如此一來就可以在 hexo 裡面使用 discount markdown 來寫文章了。</p>
+<h2>2. 中文分行書寫問題</h2>
+<p>中文的語詞之間並沒有空格，markdown 的設計者顯然沒有考慮到這一點，因為 markdown<br>的語法並沒有內建分行書寫的功能，如果把中文分為兩行：</p>
+<figure class="highlight"><pre>中文分行
+書寫
+</pre></figure>
+
+<p>這樣會被 markdown 轉換為 <code>中文分行 書寫</code>，中間被加入了空白。若是硬要用 markdown<br>達成分行書寫又不要在中間加空白的話，只能寫成這樣：</p>
+<figure class="highlight"><pre>中文分行<span class="comment">&lt;!--
+--&gt;</span>書寫
+</pre></figure>
+
+<p>利用 html 註解來把分行符號吃掉，但是行數一多就變得很麻煩了。</p>
+<p>為了解決這個問題，我加入了一個自訂的 renderer script ，將所有 <code>*.md</code> 裡面以 <code>\</code><br>結尾的行與它的下一行合併，這樣就可以寫成這樣：</p>
+<figure class="highlight"><pre>中文分行<span class="command">\
+</span>書寫
+</pre></figure>
+
+<p>而輸出結果為 <code>中文分行書寫</code>。要達到這個效果，把以下的 script 複製到 hexo<br>根目錄下的 <code>scripts/</code> 目錄裡面：</p>
+<figure class="highlight lang-js"><pre><span class="comment">// markdown-preproc.js</span>
+<span class="comment">// import synchronous renderers</span>
+markdown = hexo.extend.renderer.list(<span class="literal">true</span>)[<span class="string">"md"</span>];
+
+<span class="comment">// override renderer function for *.md</span>
+hexo.extend.renderer.register(<span class="string">'md'</span>, <span class="string">'html'</span>, <span class="keyword">function</span>(data, options) {
+   <span class="keyword">var</span> result = data.text.replace(<span class="regexp">/\\\n/g</span>, <span class="string">''</span>); <span class="comment">// join lines separated with '\&lt;newline&gt;'</span>
+   result = markdown({text: result}, options); <span class="comment">// render with default markdown renderer</span>
+   <span class="keyword">return</span> result;
+}, <span class="literal">true</span>);
+</pre></figure>
+
+<p>我會選擇使用 <code>\</code> 是因為我常用 <a href="http://docutils.sourceforge.net/rst.html" target="_blank">reStructuredText</a><br>，所以習慣這樣寫。如果你比較常用 <code>latex</code> 寫文章，你或許會想要使用 <code>%</code> 符號來連接中文行，若是這樣的話，請將以上的 script 中的 <code>/\\\n/g</code> 改成 <code>/%\n/g</code> 即可。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/hexo/">hexo</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+  <h1 class="title">Comments</h1>
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div></div>
+    <aside id="sidebar" class="alignright"><div id="sidebar-line">
+
+  
+<div class="widget tagcloud">
+  <h3 class="title">Tags</h3>
+  <div class="entry">
+    <a href="/tags/GNU/Linux/" style="font-size: 10.00px;">GNU/Linux</a><a href="/tags/hexo/" style="font-size: 10.00px;">hexo</a><a href="/tags/network/" style="font-size: 20.00px;">network</a>
+  </div>
+</div>
+
+
+
+  
+<div class="widget tag">
+  <h3 class="title">Recent Posts</h3>
+  <ul class="entry">
+    
+      <li>
+        -&nbsp;<a href="/2013/10/29/vbox-port-forwarding-client-ip/">VirtualBox 做 Port Forwarding 時保留客戶端 ip 位址</a>
+      </li>
+    
+      <li>
+        -&nbsp;<a href="/2013/10/22/iptables-port-forwarding/">使用 iptables 進行連接埠轉送 (port forwarding)</a>
+      </li>
+    
+      <li>
+        -&nbsp;<a href="/2013/10/12/hexo-install/">安裝 hexo 的一些細節</a>
+      </li>
+    
+      <li>
+        -&nbsp;<a href="/2013/10/09/hello/">測試</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+
+  <div class="widget">
+  <h3 class="title">Comments</h3>
+  <script type="text/javascript" src="http://lzh9102-github.disqus.com/recent_comments_widget.js?num_items=5&hide_avatars=1&avatar_size=32&excerpt_length=50&hide_mods=0"></script>
+</div>
+
+
+  <div class="widget tag">
+<h3 class="title">Links</h3>
+<ul class="entry">
+
+  
+  <li>
+  <a target="_blank" href="http://kuanyui.github.io">東北角的小徑</a>
+  </li>
+
+  
+  <li>
+  <a target="_blank" href="http://qwinff.github.io">QWinFF</a>
+  </li>
+
+</ul>
+</div>
+
+
+  <a href="/atom.xml"><img src="/image/feed.png"/> RSS Feed</a><br/><br/>
+
+
+  <a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by-sa/3.0/88x31.png" /></a><br>
+若無另外註明，本站內容皆以
+<a target="_blank" href="http://creativecommons.org/licenses/by-sa/3.0/deed.en">CC 創用授權 BY-SA 3.0</a>
+釋出。
+
+
+</div></aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner">
+&copy; 2014 Che-Huai Lin
+
+</footer>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+<script type="text/javascript">
+var disqus_shortname = 'lzh9102-github';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+</body>
+</html>

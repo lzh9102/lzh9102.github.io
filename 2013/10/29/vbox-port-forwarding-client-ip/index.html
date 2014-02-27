@@ -1,0 +1,232 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>VirtualBox 做 Port Forwarding 時保留客戶端 ip 位址 | Timothy's Workspace</title>
+  <meta name="author" content="Che-Huai Lin">
+  
+  <meta name="description" content="VirtualBox 的虛擬機器把網路連線設定為 NAT 的時候，從虛擬機外面無法連線到裡面，必須透過連接埠轉送 (Port Forwarding) 才能讓外部電腦可以連線到虛擬機內的server。然而在預設情況下，VirtualBox 會將轉送後的封包的來源 ip 位址改成在虛擬機裡面看到的 host 的位置 (10.0.2.2)。如果想要針對外部 ip 做存取控制，例如讓 ftp 只能從特定幾個 ip 登入，需要知道連上來客戶端的 ip 位址，必須設定成讓VirtualBox 轉送時不改變封包的來源位址 (proxy only)。注意設定前要先關閉VirtualBox Manager，否則設定完的東西可能會被蓋掉。設定方法如下：">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="VirtualBox 做 Port Forwarding 時保留客戶端 ip 位址"/>
+  <meta property="og:site_name" content="Timothy's Workspace"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.png" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Timothy's Workspace" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-44819137-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+</head>
+
+
+<body>
+  <header id="header" class="inner"><div class="alignleft">
+  <h1><a href="/">Timothy's Workspace</a></h1>
+  <h2><a href="/">資訊分享、生活記事</a></h2>
+<nav id="main-nav">
+    
+      <a href="/">Home</a>
+    
+      <a href="/profile">Profile</a>
+    
+      <a href="/projects">Projects</a>
+    
+      <a href="/archives">Archives</a>
+    
+    <!--<a href="/atom.xml">RSS</a>-->
+
+</nav>
+</div>
+</header>
+  <div id="content" class="inner">
+    <div id="main-col" class="alignleft"><div id="wrapper"><article class="post">
+  
+  <div class="post-content">
+    <header>
+      
+        <div class="icon"></div>
+        <time datetime="2013-10-30T00:42:31.000Z"><a href="/2013/10/29/vbox-port-forwarding-client-ip/">Oct 29 2013</a></time>
+      
+      
+  
+    <h1 class="title">VirtualBox 做 Port Forwarding 時保留客戶端 ip 位址</h1>
+  
+
+    </header>
+    <div class="entry">
+      
+        <p>VirtualBox 的虛擬機器把網路連線設定為 NAT 的時候，從虛擬機外面無法連線到裡面，必須透過連接埠轉送 (Port Forwarding) 才能讓外部電腦可以連線到虛擬機內的<br>server。然而在預設情況下，VirtualBox 會將轉送後的封包的來源 ip 位址改成在虛擬機裡面看到的 host 的位置 (10.0.2.2)。如果想要針對外部 ip 做存取控制，例如讓 ftp 只能從特定幾個 ip 登入，需要知道連上來客戶端的 ip 位址，必須設定成讓<br>VirtualBox 轉送時不改變封包的來源位址 (proxy only)。注意設定前要先關閉<br>VirtualBox Manager，否則設定完的東西可能會被蓋掉。設定方法如下：</p>
+<a id="more"></a>
+
+<h2>方法一：使用 VBoxManage 設定</h2>
+<p>VBoxManage 是 VirtualBox 的指令界面設定程式，假設該虛擬機只有開啟第 1 張虛擬網卡並設定為 NAT，則設定成 proxy only 的方式如下：</p>
+<figure class="highlight lang-bash"><pre>VBoxManage modifyvm <span class="string">"&lt;虛擬機名稱&gt;"</span> --nataliasmode1 proxyonly
+</pre></figure>
+
+<p>如果要設定的是第二張網卡，請將 <code>--nataliasmode1</code> 改成 <code>--nataliasmode2</code> 即可，其餘依此類推。</p>
+<h2>方法二：直接修改 *.vbox 設定檔</h2>
+<p>VBoxManage 其實只是修改目標虛擬機的設定檔 (*.vbox)，我們也可以手動修改設定檔來達到一樣的效果。首先開啟虛擬機的目錄[^1]，然後用文字編輯器開啟<em>虛擬機名稱</em>.vbox 檔案。先找到要設定的的網卡，例如：</p>
+<figure class="highlight"><pre><span class="tag">&lt;<span class="title">Adapter</span> <span class="attribute">slot</span>=<span class="value">"0"</span> <span class="attribute">enabled</span>=<span class="value">"true"</span> <span class="attribute">MACAddress</span>=<span class="value">"080027B7366D"</span> <span class="attribute">cable</span>=<span class="value">"true"</span> <span class="attribute">speed</span>=<span class="value">"0"</span> <span class="attribute">type</span>=<span class="value">"82540EM"</span>&gt;</span>
+</pre></figure>
+
+<p>然後再找到它裡面的 Alias 設定，例如：</p>
+<figure class="highlight"><pre><span class="tag">&lt;<span class="title">Alias</span> <span class="attribute">logging</span>=<span class="value">"false"</span> <span class="attribute">proxy-only</span>=<span class="value">"false"</span> <span class="attribute">use-same-ports</span>=<span class="value">"false"</span>/&gt;</span>
+</pre></figure>
+
+<p>把 <code>proxy-only=&quot;false&quot;</code> 改成 <code>proxy-only=&quot;true&quot;</code>。</p>
+<p>按照以上方法設定完之後，再啟動虛擬機器之後， port forwarding 都會保留來源 ip<br>位址，就可以在 ftp server 或是 http server 針對不同 client 位址做限制了。</p>
+<p>[^1]: 如果不知道虛擬機目錄在哪裡的話，可以開啟 VirtualBox 管理員，然後在虛擬機上按右鍵 -&gt; <em>顯示在檔案管理員</em>，就會用預設的檔案管理程式開啟虛擬機目錄。</p>
+
+      
+    </div>
+    <footer>
+      
+        
+        
+  
+  <div class="tags">
+    <a href="/tags/network/">network</a>
+  </div>
+
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+  <h1 class="title">Comments</h1>
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+
+</div></div>
+    <aside id="sidebar" class="alignright"><div id="sidebar-line">
+
+  
+<div class="widget tagcloud">
+  <h3 class="title">Tags</h3>
+  <div class="entry">
+    <a href="/tags/GNU/Linux/" style="font-size: 10.00px;">GNU/Linux</a><a href="/tags/hexo/" style="font-size: 10.00px;">hexo</a><a href="/tags/network/" style="font-size: 20.00px;">network</a>
+  </div>
+</div>
+
+
+
+  
+<div class="widget tag">
+  <h3 class="title">Recent Posts</h3>
+  <ul class="entry">
+    
+      <li>
+        -&nbsp;<a href="/2013/10/29/vbox-port-forwarding-client-ip/">VirtualBox 做 Port Forwarding 時保留客戶端 ip 位址</a>
+      </li>
+    
+      <li>
+        -&nbsp;<a href="/2013/10/22/iptables-port-forwarding/">使用 iptables 進行連接埠轉送 (port forwarding)</a>
+      </li>
+    
+      <li>
+        -&nbsp;<a href="/2013/10/12/hexo-install/">安裝 hexo 的一些細節</a>
+      </li>
+    
+      <li>
+        -&nbsp;<a href="/2013/10/09/hello/">測試</a>
+      </li>
+    
+  </ul>
+</div>
+
+
+
+  <div class="widget">
+  <h3 class="title">Comments</h3>
+  <script type="text/javascript" src="http://lzh9102-github.disqus.com/recent_comments_widget.js?num_items=5&hide_avatars=1&avatar_size=32&excerpt_length=50&hide_mods=0"></script>
+</div>
+
+
+  <div class="widget tag">
+<h3 class="title">Links</h3>
+<ul class="entry">
+
+  
+  <li>
+  <a target="_blank" href="http://kuanyui.github.io">東北角的小徑</a>
+  </li>
+
+  
+  <li>
+  <a target="_blank" href="http://qwinff.github.io">QWinFF</a>
+  </li>
+
+</ul>
+</div>
+
+
+  <a href="/atom.xml"><img src="/image/feed.png"/> RSS Feed</a><br/><br/>
+
+
+  <a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by-sa/3.0/88x31.png" /></a><br>
+若無另外註明，本站內容皆以
+<a target="_blank" href="http://creativecommons.org/licenses/by-sa/3.0/deed.en">CC 創用授權 BY-SA 3.0</a>
+釋出。
+
+
+</div></aside>
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner">
+&copy; 2014 Che-Huai Lin
+
+</footer>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+
+
+<script type="text/javascript">
+var disqus_shortname = 'lzh9102-github';
+
+(function(){
+  var dsq = document.createElement('script');
+  dsq.type = 'text/javascript';
+  dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+}());
+</script>
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+</body>
+</html>
